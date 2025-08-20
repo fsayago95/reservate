@@ -13,16 +13,20 @@ class BookingPage extends StatefulWidget {
 class _BookingPageState extends State<BookingPage> {
   DateTime? selectedDate;
   int? peopleCount;
-  String? errorMessage;
+
+  String? dateError;
+  String? peopleError;
 
   final textCommentController = TextEditingController();
 
   void _handleBooking() {
-    if (selectedDate == null || peopleCount == null) {
-      setState(() {
-        errorMessage = 'Please select an option';
-      });
-      return;
+    setState(() {
+      dateError = selectedDate == null ? 'Please select a date' : null;
+      peopleError = peopleCount == null ? 'Please select a number' : null;
+    });
+
+    if (dateError == null && peopleError == null) {
+      print('Proceed with booking: $selectedDate, $peopleCount people');
     }
   }
 
@@ -30,38 +34,42 @@ class _BookingPageState extends State<BookingPage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-          appBar: AppBar(
-            title: const Text("Booking page"),
+        appBar: AppBar(
+          title: const Text("Booking page"),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(18.0),
+          child: Column(
+            children: [
+              const CommonDatePicker(),
+              CommonDropdown<int>(
+                label: 'Select quantity',
+                value: peopleCount,
+                prefixIcon: Icons.numbers_sharp,
+                hint: 'Choose a number',
+                errorText: peopleError,
+                items: List.generate(6, (i) {
+                  final value = i + 1; // start at 1
+                  return DropdownMenuItem<int>(
+                    value: value,
+                    child: Text(value.toString()),
+                  );
+                }),
+                onChanged: (newValue) {
+                  setState(() {
+                    peopleCount = newValue;
+                    peopleError = null;
+                  });
+                },
+              ),
+              CommonButton(
+                onPressed: _handleBooking,
+                text: "Check availability",
+              ),
+            ],
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(18.0),
-            child: Column(
-              children: [
-                const CommonDatePicker(),
-                CommonDropdown<int>(
-                  label: 'Select quantity',
-                  value: peopleCount,
-                  isRequired: true,
-                  prefixIcon: Icons.numbers_sharp,
-                  hint: 'Choose a number',
-                  errorText: errorMessage,
-                  items: List.generate(6, (index) {
-                    return DropdownMenuItem<int>(
-                      value: index,
-                      child: Text(index.toString()),
-                    );
-                  }),
-                  onChanged: (int? newValue) {
-                    setState(() {
-                      peopleCount = newValue;
-                      errorMessage = null;
-                    });
-                  },
-                ),
-                CommonButton(onPressed: _handleBooking, text: 'Lets book!')
-              ],
-            ),
-          )),
+        ),
+      ),
     );
   }
 }
